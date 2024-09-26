@@ -3,6 +3,7 @@ package com.example.appdatabaseinsert
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,9 +34,34 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.room.Room
+import com.example.appdatabaseinsert.roomDB.Pessoa
+import com.example.appdatabaseinsert.roomDB.PessoaDataBase
 import com.example.appdatabaseinsert.ui.theme.AppDatabaseInsertTheme
+import com.example.appdatabaseinsert.viewModel.PessoaViewModel
+import com.example.appdatabaseinsert.viewModel.Repository
 
 class MainActivity : ComponentActivity() {
+    private val db by lazy {
+        Room.databaseBuilder(
+            applicationContext,
+            PessoaDataBase::class.java,
+            name = "pessoa.db"
+        ).build()
+    }
+
+    private val viewModel by viewModels<PessoaViewModel>(
+        factoryProducer = {
+            object : ViewModelProvider.Factory {
+                override fun <T: ViewModel> create(modelClass: Class<T>): T{
+                    return PessoaViewModel(Repository(db)) as T
+                }
+            }
+        }
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -44,7 +71,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    App()
+                    App(viewModel, this)
                 }
             }
         }
@@ -52,9 +79,19 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun App() {
+fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
     var name by remember { mutableStateOf("") }
     var telephone by remember { mutableStateOf("") }
+
+    val pessoa = Pessoa(
+        name,
+        telephone
+    )
+    var pessoaList by remember { mutableStateOf(listOf<Pessoa>()) }
+    viewModel.getPessoa().observe(mainActivity){
+        pessoaList = it
+
+    }
     Column(
         Modifier
             .background(Color(23,23,23))
@@ -162,10 +199,9 @@ fun App() {
             Arrangement.Center
         ){
             Button(onClick = {
-                // viewModel.upsertPessoa(pessoa) - > Database view
+                viewModel.upsertPessoa(pessoa)
                 name = ""
                 telephone = ""
-
             },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0, 176, 21), contentColor = Color.White)
             ) {
@@ -188,7 +224,7 @@ fun App() {
                     .fillMaxWidth(0.5f)
             ) {
                 Text(
-                    text = "Nome",
+                    text = "${pessoa.nome}",
                     color = Color(255,255,255)
                 )
             }
@@ -197,14 +233,17 @@ fun App() {
                     .fillMaxWidth(0.5f)
             ) {
                 Text(
-                    text = "Telefone",
+                    text = "${pessoa.telefone}",
                     color = Color(255,255,255)
                 )
             }
         }
+        Divider()
     }
 }
 
+// Função para Preview do App que não será mais usada
+/*
 @Preview
 @Composable
 fun AppPreview() {
@@ -218,3 +257,4 @@ fun AppPreview() {
         }
     }
 }
+*/

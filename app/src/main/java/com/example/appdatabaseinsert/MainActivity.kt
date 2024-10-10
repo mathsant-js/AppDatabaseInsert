@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -80,12 +82,12 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
-    var name by remember { mutableStateOf("") }
-    var telephone by remember { mutableStateOf("") }
+    var nome by remember { mutableStateOf("") }
+    var telefone by remember { mutableStateOf("") }
 
     val pessoa = Pessoa(
-        name,
-        telephone
+        nome,
+        telefone
     )
     var pessoaList by remember { mutableStateOf(listOf<Pessoa>()) }
     viewModel.getPessoa().observe(mainActivity){
@@ -127,8 +129,8 @@ fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
             Arrangement.Center
         ) {
             TextField(
-                value = name,
-                onValueChange = { name = it  },
+                value = nome,
+                onValueChange = { nome = it  },
                 label = { Text("Nome") },
                 colors = TextFieldDefaults.colors(
                     unfocusedIndicatorColor = Color(48,48,48),
@@ -163,8 +165,8 @@ fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
             Arrangement.Center
         ) {
             TextField(
-                value = telephone,
-                onValueChange = { telephone = it  },
+                value = telefone,
+                onValueChange = { telefone = it  },
                 label = { Text("Telefone") },
                 colors = TextFieldDefaults.colors(
                     unfocusedIndicatorColor = Color(48,48,48),
@@ -200,8 +202,8 @@ fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
         ){
             Button(onClick = {
                 viewModel.upsertPessoa(pessoa)
-                name = ""
-                telephone = ""
+                nome = ""
+                telefone = ""
             },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0, 176, 21), contentColor = Color.White)
             ) {
@@ -224,7 +226,8 @@ fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
                     .fillMaxWidth(0.5f)
             ) {
                 Text(
-                    text = "${pessoa.nome}",
+                    text = "Nome",
+                    fontWeight = FontWeight.Bold,
                     color = Color(255,255,255)
                 )
             }
@@ -233,28 +236,37 @@ fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
                     .fillMaxWidth(0.5f)
             ) {
                 Text(
-                    text = "${pessoa.telefone}",
+                    text = "Telefone",
+                    fontWeight = FontWeight.Bold,
                     color = Color(255,255,255)
                 )
             }
         }
         Divider()
-    }
-}
-
-// Função para Preview do App que não será mais usada
-/*
-@Preview
-@Composable
-fun AppPreview() {
-    AppDatabaseInsertTheme {
-        // A surface container using the 'background' color from the theme
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            App()
+        LazyColumn {
+            items(pessoaList) { pessoa ->
+                Row (
+                    Modifier
+                        .fillMaxWidth(),
+                    Arrangement.Center
+                ) {
+                    Column (
+                        Modifier
+                            .fillMaxWidth(0.5f),
+                        Arrangement.Center
+                    ) {
+                        Text(text = "${pessoa.nome}")
+                    }
+                    Column (
+                        Modifier
+                            .fillMaxWidth(0.5f),
+                        Arrangement.Center
+                    ) {
+                        Text(text = "${pessoa.telefone}")
+                    }
+                }
+                Divider()
+            }
         }
     }
 }
-*/
